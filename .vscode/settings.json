@@ -1,0 +1,16 @@
+{
+  "Lua.diagnostics.globals": [
+    "peripheral",
+    "http",
+    "fs",
+    "functions",
+    "shell",
+    "textutils"
+  ],
+  "Lua.diagnostics.disable": [
+    "deprecated",
+    "need-check-nil",
+    "param-type-mismatch",
+    "undefined-field"
+  ]
+}

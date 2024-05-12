@@ -1,0 +1,3 @@
+.ls/*
+!.ls/version
+node_modules/
