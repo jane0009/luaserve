@@ -1,0 +1,4 @@
+-- todo
+-- key exchange
+-- key generation
+-- look cryptoNet

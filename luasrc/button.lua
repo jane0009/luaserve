@@ -1,3 +1,15 @@
+if not functions then
+   functions = {}
+end
+
+if not functions.button then
+   functions.button = {}
+end
+
+-- button api, modified to work with luaserve
+-- and also to expand on its functionality
+-- ORIGINAL COMMENT:
+
 --Original DireWolf20's Button API modified to include better customization and integration + simple usage explanation.
 --[[TL;DR:
 assuming you've saved the api as 'button' usage is as follows:
@@ -14,17 +26,20 @@ button.clearAll()
 button.update()
 ^Updates screen with new button data (new buttons, button state(on/off), etc.)
 ^Generally to be called after any button.* function.
-
-
-
 --]]
 
-local mon = peripheral.wrap("top")
+-- todo use peripheral wrapper
+local mon = peripheral.find("monitor")
 mon.setTextScale(1)
 mon.setTextColor(colors.white)
 mon.setBackgroundColor(colors.black)
-button={}
-local menu={}
+local menu = {}
+
+if not functions.button._button then
+   functions.button._button = {}
+end
+
+local button = functions.button._button
 
 --[[
 function exportMenus(fileName)
@@ -59,7 +74,7 @@ function deleteMenu(mName)
 end
 --]]
 
-function create(name, func, xmin, xmax, ymin, ymax, oncol, offcol, textcol)
+local function create(name, func, xmin, xmax, ymin, ymax, oncol, offcol, textcol)
    button[name] = {}
    button[name]["func"] = func
    button[name]["active"] = false
@@ -71,33 +86,36 @@ function create(name, func, xmin, xmax, ymin, ymax, oncol, offcol, textcol)
    button[name]["offcol"] = offcol
    button[name]["textcol"] = textcol
 end
+functions.button.create = create
 
-function clear(name)
+local function clear(name)
    table.remove(button, name)
 end
+functions.button.clear = clear
 
-function clearAll()
+local function clearAll()
    button = {}
 end
+functions.button.clearAll = clearAll
 
 --[[
 function funcName()
    print("You clicked buttonText")
 end
-        
+
 function addButton()
    setTable("ButtonText", funcName, 5, 25, 4, 8, colors.lime, colors.red, colors.white)
-end  
---]]   
+end
+--]]
 
-function render(text, color, bData)
+local function render(text, color, bData)
    mon.setBackgroundColor(color)
-   local yspot = math.floor((bData["ymin"] + bData["ymax"]) /2)
-   local xspot = math.floor((bData["xmax"] - bData["xmin"] - string.len(text)) /2) +1
+   local yspot = math.floor((bData["ymin"] + bData["ymax"]) / 2)
+   local xspot = math.floor((bData["xmax"] - bData["xmin"] - string.len(text)) / 2) + 1
    for j = bData["ymin"], bData["ymax"] do
       mon.setCursorPos(bData["xmin"], j)
       if j == yspot then
-         for k = 0, bData["xmax"] - bData["xmin"] - string.len(text) +1 do
+         for k = 0, bData["xmax"] - bData["xmin"] - string.len(text) + 1 do
             if k == xspot then
                mon.write(text)
             else
@@ -112,31 +130,35 @@ function render(text, color, bData)
    end
    mon.setBackgroundColor(colors.black)
 end
-     
-function update()
+functions.button.render = render
+
+local function update()
    local currColor
-   for name,data in pairs(button) do
+   for name, data in pairs(button) do
       local on = data["active"]
       if on == true then currColor = data["oncol"] else currColor = data["offcol"] end
       render(name, currColor, data)
    end
 end
+functions.button.update = update
 
-function toggle(name)
+local function toggle(name)
    button[name]["active"] = not button[name]["active"]
    update()
-end     
+end
+functions.button.toggle = toggle
 
-function flash(name)
+local function flash(name)
    toggle(name)
-   sleep(0.15)
+   os.sleep(0.15)
    toggle(name)
 end
+functions.button.flash = flash
 
-function checkxy(x, y)
+local function checkxy(x, y)
    for name, data in pairs(button) do
-      if y>=data["ymin"] and  y <= data["ymax"] then
-         if x>=data["xmin"] and x<= data["xmax"] then
+      if y >= data["ymin"] and y <= data["ymax"] then
+         if x >= data["xmin"] and x <= data["xmax"] then
             if data["func"] ~= nil then data["func"]() end
             return name
             --data["active"] = not data["active"]
@@ -146,5 +168,6 @@ function checkxy(x, y)
    end
    return false
 end
+functions.button.check = checkxy
 
 --Button Functions go here

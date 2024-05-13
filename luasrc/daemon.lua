@@ -1,4 +1,5 @@
 require('/src/file')
+functions.file.require_lib('settings')
 functions.file.require_lib('string')
 functions.file.require_lib('logging')
 functions.file.require_lib('event')
@@ -10,7 +11,10 @@ if not functions.daemon then
   functions.daemon = {}
 end
 
+local tick_time = functions.settings.get("tick_time", 1) or 1
+
 local _tid
+local ticks = 0
 
 local event_handlers = {}
 event_handlers["terminate"] = function(event)
@@ -21,9 +25,11 @@ event_handlers["timer"] = function(event)
   local event, id = table.unpack(event)
   if id == _tid then
     -- ontick code
-    functions.logging.debug("tick")
+    ticks = ticks + 1
+    functions.logging.debug("tick " .. ticks)
+    functions.event.emit("tick", ticks)
     -- schedule next tick
-    _tid = os.startTimer(2)
+    _tid = os.startTimer(tick_time)
   end
 end
 

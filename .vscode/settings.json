@@ -5,7 +5,8 @@
     "fs",
     "functions",
     "shell",
-    "textutils"
+    "textutils",
+    "colors"
   ],
   "Lua.diagnostics.disable": [
     "deprecated",
