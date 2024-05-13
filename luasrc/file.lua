@@ -72,6 +72,8 @@ local function recursive_ensure(path, libname)
   end
 end
 
+local loaded = {}
+
 local function require_lib(libname)
   recursive_ensure('/src', libname)
 
@@ -79,7 +81,12 @@ local function require_lib(libname)
   if match ~= nil then
     functions.logging.verbose('match ' .. match)
     local sanitized_match = match:gsub("%.lua", "")
-    require(sanitized_match)
+    if not loaded[sanitized_match] then
+      loaded[sanitized_match] = true
+      require(sanitized_match)
+    else
+      functions.logging.debug('already loaded ' .. libname)
+    end
   else
     functions.logging.warn('could not match ' .. libname .. ', attempting download')
     functions.download.ensure_latest('/src/' .. libname .. '.lua')

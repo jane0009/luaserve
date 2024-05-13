@@ -1,6 +1,7 @@
 require('/src/file')
 functions.file.require_lib('logging')
 functions.file.require_lib('settings')
+functions.file.require_lib('event')
 
 local modem = peripheral.find('modem')
 if modem == nil then
@@ -18,6 +19,12 @@ end
 
 local wait_time = 5
 local messages = {}
+
+local function ev_handler(data)
+  local event, side, channel, reply_channel, message, distance = table.unpack(data)
+  functions.modem.receive_message(event, side, channel, reply_channel, message, distance)
+end
+functions.event.sub("modem_message", ev_handler)
 
 local function receive_message(event, side, channel, reply_channel, message, distance)
   if not messages[channel] then
@@ -66,3 +73,9 @@ local function negotiate_channel(label)
   return functions.modem.broadcast("NEG " .. label)
 end
 functions.modem.negotiate_channel = negotiate_channel
+
+-- todo heartbeats
+-- sub to tick
+-- pull list of clients from settings?
+-- based on computer label
+-- each other client maintains a list of active peers
