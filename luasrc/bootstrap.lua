@@ -45,7 +45,7 @@ end
 functions.logging.verbose('debug')
 
 local killsig = false
-local tick = os.startTimer(4)
+local tick = os.startTimer(2)
 repeat
   killsig = functions.daemon.daemon_poll(tick)
 until (killsig == true)

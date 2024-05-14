@@ -15,16 +15,23 @@ let versions = {};
 
 if (fs.existsSync(".ls/version")) {
   const file = fs.readFileSync(".ls/version");
-  versions = JSON.parse(file);
+  versions = JSON.parse(file.toString());
   console.log("load", versions);
 }
 
 app.use("/", express.static(".ls"));
 
 function diffy(filepath) {
+  filepath = filepath.replace(/\\/g, "/"); // windows fix
   console.log("diffy", filepath);
   if (!fs.existsSync(".ls/src/" + filepath)) {
     update_version(filepath);
+    write_changes();
+    return;
+  }
+
+  if (!fs.existsSync("luasrc/" + filepath)) {
+    delete_file(filepath);
     write_changes();
     return;
   }
@@ -50,6 +57,12 @@ function update_version(filepath) {
   console.log("update", filepath);
   fs.cpSync(path.join("luasrc", filepath), path.join(".ls/src", filepath));
   versions[filepath] = (versions[filepath] || 0) + 1;
+}
+
+function delete_file(filepath) {
+  console.log("delete", filepath);
+  fs.unlinkSync(path.join(".ls/src", filepath));
+  delete versions[filepath];
 }
 
 function write_changes() {

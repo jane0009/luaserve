@@ -70,3 +70,17 @@ local function table_to_string(tbl)
 end
 
 functions.string.table_to_string = table_to_string
+
+local function stringify(...)
+  local args = { ... }
+  local res = ""
+  for _, v in ipairs(args) do
+    if type(v) == "table" then
+      res = res .. functions.string.table_to_string(v) .. " "
+    else
+      res = res .. tostring(v) .. " "
+    end
+  end
+  return res
+end
+functions.string.stringify = stringify

@@ -1,10 +1,93 @@
+if not functions.file then
+  require('/src/file')
+end
+functions.file.require_lib('table')
+functions.file.require_lib('settings')
+
 if not functions then
-   functions = {}
+  functions = {}
 end
 
-if not functions.button then
-   functions.button = {}
+if not functions.gui then
+  functions.gui = {}
 end
+
+functions.gui.active = functions.settings.get('gui.active', true)
+functions.gui.prefer_monitor = functions.settings.get('gui.prefer_monitor', true)
+functions.gui.log_if_has_monitor = functions.settings.get('gui.log_if_has_monitor', true)
+functions.gui.mobile_computer = functions.settings.get('gui.mobile_computer', false)
+
+if functions.gui.mobile_computer then
+  -- cannot use monitors on mobile computers
+  functions.logging.verbose('Mobile computer detected, disabling monitor use')
+  functions.gui.prefer_monitor = false
+  functions.gui.log_if_has_monitor = false
+end
+
+functions.gui.partial_updates = functions.settings.get('gui.partial_updates', false) -- disabled by default for now
+
+-- todo handle monitors,
+-- implement frame buffer api
+-- implement colored pixels
+
+-- frames are continuous (do not care about x,y)
+local current_frame = {}
+local buffered_frame = {}
+
+local current_tick = 0
+
+local function frame_tick(tick)
+  buffered_frame = {}
+  -- insert `tick` as characters into `buffered_frame`
+  local tstr = tostring(tick) .. " " .. tostring(functions.gui.partial_updates)
+  for i = 1, string.len(tstr) do
+    table.insert(buffered_frame, string.sub(tstr, i, i))
+  end
+end
+
+local function get_xy(idx)
+  local w, h = term.getSize()
+  local x = (idx - 1) % w + 1
+  local y = math.floor((idx - 1) / w) + 1
+  return x, y
+end
+
+local function gui_tick(tick)
+  -- no sense re-rendering on the same tick
+  if current_tick == tick then
+    return
+  end
+  current_tick = tick
+  frame_tick(tick)
+  if functions.gui.partial_updates then
+    local diff = functions.table.get_differing_indexes(current_frame, buffered_frame)
+    if diff ~= nil and #diff > 0 then
+      for i = 1, table.maxn(diff) do
+        local idx = diff[i]
+        local x, y = get_xy(idx)
+        term.setCursorPos(x, y)
+        term.write(buffered_frame[idx])
+      end
+      current_frame = buffered_frame
+    end
+  else
+    term.clear()
+    term.setCursorPos(1, 1)
+    for i = 1, table.maxn(buffered_frame) do
+      term.write(buffered_frame[i])
+    end
+  end
+end
+functions.gui.gui_tick = gui_tick
+
+local function clear()
+  term.clear()
+  term.setCursorPos(1, 1)
+end
+functions.gui.clear = clear
+
+-- [ DEPRECATED ]
+-- todo rewrite
 
 -- button api, modified to work with luaserve
 -- and also to expand on its functionality
@@ -28,18 +111,25 @@ button.update()
 ^Generally to be called after any button.* function.
 --]]
 
+if not functions.gui.button then
+  functions.gui.button = {}
+end
+
 -- todo use peripheral wrapper
 local mon = peripheral.find("monitor")
+if not mon then
+  return -- no monitor, no api
+end
 mon.setTextScale(1)
 mon.setTextColor(colors.white)
 mon.setBackgroundColor(colors.black)
 local menu = {}
 
-if not functions.button._button then
-   functions.button._button = {}
+if not functions.gui.button._button then
+   functions.gui.button._button = {}
 end
 
-local button = functions.button._button
+local button = functions.gui.button._button
 
 --[[
 function exportMenus(fileName)
@@ -86,17 +176,17 @@ local function create(name, func, xmin, xmax, ymin, ymax, oncol, offcol, textcol
    button[name]["offcol"] = offcol
    button[name]["textcol"] = textcol
 end
-functions.button.create = create
+functions.gui.button.create = create
 
-local function clear(name)
+local function buttonClear(name)
    table.remove(button, name)
 end
-functions.button.clear = clear
+functions.gui.button.clear = buttonClear
 
 local function clearAll()
    button = {}
 end
-functions.button.clearAll = clearAll
+functions.gui.button.clearAll = clearAll
 
 --[[
 function funcName()
@@ -130,7 +220,7 @@ local function render(text, color, bData)
    end
    mon.setBackgroundColor(colors.black)
 end
-functions.button.render = render
+functions.gui.button.render = render
 
 local function update()
    local currColor
@@ -140,20 +230,20 @@ local function update()
       render(name, currColor, data)
    end
 end
-functions.button.update = update
+functions.gui.button.update = update
 
 local function toggle(name)
    button[name]["active"] = not button[name]["active"]
    update()
 end
-functions.button.toggle = toggle
+functions.gui.button.toggle = toggle
 
 local function flash(name)
    toggle(name)
    os.sleep(0.15)
    toggle(name)
 end
-functions.button.flash = flash
+functions.gui.button.flash = flash
 
 local function checkxy(x, y)
    for name, data in pairs(button) do
@@ -168,6 +258,6 @@ local function checkxy(x, y)
    end
    return false
 end
-functions.button.check = checkxy
+functions.gui.button.check = checkxy
 
 --Button Functions go here

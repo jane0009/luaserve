@@ -11,13 +11,19 @@ if not functions.logging then
   functions.logging = {}
 end
 
-local DEFAULT_LOG_LEVEL = "info"
-local LOG_LEVEL
+local default_log_level = "info"
+local default_log_path = "/run.log"
+local log_level
+local log_file_path
 if not functions.settings then
-  LOG_LEVEL = DEFAULT_LOG_LEVEL
+  log_level = default_log_level
+  log_file_path = default_log_path
 else
-  LOG_LEVEL = functions.settings.get("log_level", DEFAULT_LOG_LEVEL) or DEFAULT_LOG_LEVEL
+  log_level = functions.settings.get("log_level", default_log_level)
+  log_file_path = functions.settings.get("log_file_path", default_log_path)
 end
+
+-- todo log rotations
 
 local levels = {
   debug = { "debug", "verbose", "info", "warn", "error" },
@@ -36,8 +42,8 @@ local levels = {
 -- functions.logging.set_log_level = set_log_level
 
 local function is_loggable(level)
-  if levels[LOG_LEVEL] ~= nil then
-    for _, v in ipairs(levels[LOG_LEVEL]) do
+  if levels[log_level] ~= nil then
+    for _, v in ipairs(levels[log_level]) do
       if v == level then
         return true -- if the current log level is in the list of levels to log, return true
       end
@@ -66,7 +72,7 @@ local function tostr(...)
 end
 
 local function _log(level, ...)
-  local file = io.open("/run.log", "a")
+  local file = io.open(log_file_path, "a")
   local txt = tostr(...)
   local info = debug.getinfo(3)
   local src = info.short_src .. ":" .. info.currentline
@@ -75,7 +81,11 @@ local function _log(level, ...)
     file:write(msg .. "\n")
     file:close()
   end
-  _print(msg)
+  if not functions.gui or functions.gui.active == false then
+    -- only print if we aren't overwriting the screen with
+    -- a gui already
+    _print(msg)
+  end
 end
 
 local function generate_log_level(level)

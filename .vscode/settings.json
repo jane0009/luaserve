@@ -6,7 +6,8 @@
     "functions",
     "shell",
     "textutils",
-    "colors"
+    "colors",
+    "term"
   ],
   "Lua.diagnostics.disable": [
     "deprecated",

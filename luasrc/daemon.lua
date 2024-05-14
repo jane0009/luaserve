@@ -3,6 +3,7 @@ functions.file.require_lib('settings')
 functions.file.require_lib('string')
 functions.file.require_lib('logging')
 functions.file.require_lib('event')
+functions.file.require_lib('gui')
 
 if not functions then
   functions = {}
@@ -11,13 +12,14 @@ if not functions.daemon then
   functions.daemon = {}
 end
 
-local tick_time = functions.settings.get("tick_time", 1) or 1
+local tick_time = functions.settings.get("tick_time", 1)
 
 local _tid
 local ticks = 0
 
 local event_handlers = {}
 event_handlers["terminate"] = function(event)
+  functions.gui.clear()
   return true
 end
 
@@ -46,6 +48,9 @@ local function daemon_poll(tid)
     should_terminate = event_handlers[event[1]](event)
   end
   functions.event.emit(event[1], event)
+  if functions.gui.active then
+    functions.gui.gui_tick(ticks)
+  end
   return should_terminate
 end
 functions.daemon.daemon_poll = daemon_poll

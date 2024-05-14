@@ -4,7 +4,7 @@ if fs.exists("/src/settings.lua") then
 end
 local api_path
 if functions.settings ~= nil then
-  api_path = functions.settings.get("api_path", "https://lua.j4.pm/") or "https://lua.j4.pm/"
+  api_path = functions.settings.get("api_path", "https://lua.j4.pm/")
 else
   api_path = "https://lua.j4.pm/"
 end
@@ -75,7 +75,7 @@ functions.download.download_file = download_file
 local check_time
 -- 5 minutes
 if functions.settings ~= nil then
-  check_time = functions.settings.get("check_time", 300) or 300
+  check_time = functions.settings.get("check_time", 300)
 else
   check_time = 300
 end
@@ -100,8 +100,16 @@ local function version_check(sanitized_filepath)
   local text = file:read("a")
   file:close()
   -- parse into number
-  local last_check = tonumber(text) or 0
+  local last_check = tonumber(text)
+  -- the 'or 0' may not work the intended way
+  if last_check == nil then last_check = 0 end
   log.debug(time .. " - " .. last_check .. " = " .. time - last_check)
+  -- the computer must have restarted
+  if last_check > time then
+    log.verbose("last check was in the future, resetting")
+    write_version(sanitized_filepath)
+    return true
+  end
   if time - last_check > check_time then
     write_version(sanitized_filepath)
     return true

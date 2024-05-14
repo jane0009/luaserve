@@ -10,7 +10,7 @@ if modem == nil then
   return
 end
 
-local broadcast_channel = functions.settings.get("broadcast_channel", 1) or 1
+local broadcast_channel = functions.settings.get("broadcast_channel", 1)
 
 if not modem.isOpen(broadcast_channel) then
   functions.logging.debug("opening broadcast channel")
@@ -23,7 +23,7 @@ if not functions.modem then
   functions.modem = {}
 end
 
-local wait_time = functions.settings.get("modem_timeout", 5) or 5
+local wait_time = functions.settings.get("modem_timeout", 5)
 local messages = {}
 
 -- message formats

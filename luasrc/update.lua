@@ -12,10 +12,11 @@ end
 
 local index = {
   "bootstrap",
-  "button",
   "daemon",
   "download",
+  "event",
   "file",
+  "gui",
   "logging",
   "modem",
   "peripheral",
