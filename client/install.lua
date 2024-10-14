@@ -77,6 +77,9 @@ end
 if not fs.exists('/src/file.lua') then
   functions.download.download_file("src/file.lua")
 end
+if not fs.exists('/src/encrypt/md5.lua') then
+  functions.download.download_file("src/encrypt/md5.lua")
+end
 if not fs.exists('/src/download.lua') then
   functions.download.download_file("src/download.lua")
 end

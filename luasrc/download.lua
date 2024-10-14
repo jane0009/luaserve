@@ -1,10 +1,11 @@
 require('/src/string')
+require('/src/encrypt/md5')
 if fs.exists("/src/settings.lua") then
   require('/src/settings')
 end
 local api_path
 if functions.settings ~= nil then
-  api_path = functions.settings.get("api_path", "https://lua.j4.pm/")
+  api_path = functions.settings.get("api_path", "http://lua.j4.pm/")
 else
   api_path = "https://lua.j4.pm/"
 end
@@ -118,7 +119,7 @@ local function version_check(sanitized_filepath)
 end
 
 local function versioned_download(sanitized_filepath, versions, dir_override)
-  log.verbose("downloading v" .. versions[sanitized_filepath] .. " of " .. sanitized_filepath)
+  log.verbose("downloading new version of " .. sanitized_filepath)
   download_file("/src/" .. sanitized_filepath, dir_override)
   local vf = io.open("/src/" .. sanitized_filepath .. ".vs", "w")
   vf:write(versions[sanitized_filepath])
@@ -158,6 +159,8 @@ local function ensure_latest(filepath)
 
   -- check if we have a local version file
   log.debug("sanitized_filepath: " .. sanitized_filepath)
+  --[[
+  
   if not fs.exists("/src/" .. sanitized_filepath .. ".vs") then
     log.info("no version file found for " .. sanitized_filepath .. ", downloading")
     versioned_download(sanitized_filepath, versions)
@@ -175,11 +178,21 @@ local function ensure_latest(filepath)
   local current_version = tonumber(vf:read("a"))
   vf:close()
 
+  --]]
+
+  local current_verison
+  if fs.exists(sanitized_filepath) then
+    local file = io.open(sanitized_filepath, "r")
+    local content = file:read("a")
+    current_version = functions.md5.sumhexa(content)
+  end
+
   if versions[sanitized_filepath] == nil or current_version == nil then
     log.info("no version found for " .. sanitized_filepath .. ", downloading")
     versioned_download(sanitized_filepath, versions)
-  elseif versions[sanitized_filepath] > current_version then
-    log.info(sanitized_filepath .. " is newer, downloading")
+  elseif versions[sanitized_filepath] ~= current_version then
+    log.info(sanitized_filepath .. " is different, downloading")
+    log.debug("ver:" .. versions[sanitized_filepath] .. " - cur:" .. current_version)
     versioned_download(sanitized_filepath, versions)
   end
 end

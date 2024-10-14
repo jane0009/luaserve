@@ -42,8 +42,8 @@ function diffy(filepath) {
   const md5_ser = crypto.createHmac("md5", md5_secret);
   md5_cur.update(file_current);
   md5_ser.update(file_served);
-  const hash_cur = md5_cur.digest("base64");
-  const hash_ser = md5_ser.digest("base64");
+  const hash_cur = md5_cur.digest("hex");
+  const hash_ser = md5_ser.digest("hex");
   console.log(hash_cur, hash_ser);
   if (hash_cur != hash_ser) {
     update_version(filepath);
@@ -56,7 +56,11 @@ function diffy(filepath) {
 function update_version(filepath) {
   console.log("update", filepath);
   fs.cpSync(path.join("luasrc", filepath), path.join(".ls/src", filepath));
-  versions[filepath] = (versions[filepath] || 0) + 1;
+  const md5 = crypto.createHmac("md5", md5_secret);
+  const file = fs.readFileSync(".ls/src/" + filepath);
+  md5.update(file);
+  const hash = md5.digest("hex");
+  versions[filepath] = hash;
 }
 
 function delete_file(filepath) {

@@ -5,8 +5,18 @@ functions.download.ensure_latest('/src/logging.lua')
 require('/src/string')
 require('/src/logging')
 
+if not functions then
+  functions = {}
+end
 if not functions.file then
   functions.file = {}
+end
+
+if not data then
+  data = {}
+end
+if not data.file then
+  data.file = {}
 end
 
 local allowed_search_paths = { "/data", "/src" }
@@ -44,7 +54,11 @@ local function search_dir_for(dir, filename)
       functions.logging.debug('not found ' .. string.lower(v) .. ', ' .. string.lower(filename))
     end
   end
-  functions.logging.debug('result is ' .. result)
+  if result ~= nil then
+    functions.logging.debug('result is ' .. result)
+  else 
+    functions.logging.debug('result is nil')
+  end
   return result
 end
 
@@ -72,7 +86,7 @@ local function recursive_ensure(path, libname)
   end
 end
 
-local loaded = {}
+data.file.loaded = {}
 
 local function require_lib(libname)
   recursive_ensure('/src', libname)
@@ -81,8 +95,8 @@ local function require_lib(libname)
   if match ~= nil then
     functions.logging.verbose('match ' .. match)
     local sanitized_match = match:gsub("%.lua", "")
-    if not loaded[sanitized_match] then
-      loaded[sanitized_match] = true
+    if not data.file.loaded[sanitized_match] then
+      data.file.loaded[sanitized_match] = true
       require(sanitized_match)
     else
       functions.logging.debug('already loaded ' .. libname)

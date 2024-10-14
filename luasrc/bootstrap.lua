@@ -1,20 +1,10 @@
--- call stack debugging
+if not functions then
+  functions = {}
+end
 
--- debugInfo = { }
--- local function hook()
---   local n = 3
---   local info = debug.getinfo(2)
---   while info ~= nil do
---     debugInfo[n - 2] = info.source .. ":" .. info.currentline
---     info = debug.getinfo(n)
---     n = n + 1
---     if info.what ~= "Lua" then
---       break
---     end
---   end
--- end
-
--- debug.sethook(hook, "c")
+if not data then
+  data = {}
+end
 
 --
 require('/src/download')

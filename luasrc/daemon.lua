@@ -20,7 +20,9 @@ local ticks = 0
 local event_handlers = {}
 event_handlers["terminate"] = function(event)
   functions.gui.clear()
-  return true
+  return {
+    terminate = true
+  }
 end
 
 event_handlers["timer"] = function(event)
@@ -45,7 +47,10 @@ local function daemon_poll(tid)
   functions.logging.debug("poll " .. event[1])
   local should_terminate = false
   if event_handlers[event[1]] ~= nil then
-    should_terminate = event_handlers[event[1]](event)
+    local result = event_handlers[event[1]](event)
+    if result ~= nil and result.terminate == true then
+      should_terminate = true
+    end
   end
   functions.event.emit(event[1], event)
   if functions.gui.active then
